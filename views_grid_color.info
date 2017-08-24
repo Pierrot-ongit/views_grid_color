@@ -1,0 +1,8 @@
+name = Views Grid Color
+description = Permet de changer la couleur en arrière fond d'une grille de views, via une interface admin.
+core = 7.x
+package = Custom
+dependencies[] = views
+
+configure = admin/config/user-interface/views_grid_color
+

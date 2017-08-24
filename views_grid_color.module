@@ -1,0 +1,179 @@
+<?php
+
+/**
+ * Implement hook_menu().
+ */
+function views_grid_color_menu() {
+
+    $items['admin/config/user-interface/views_grid_color'] = array(
+        'title' => 'Grille Couleurs configuration',
+        'description' => t('Grille Couleurs Configuration'),
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('views_grid_color_admin_settings_form'),
+        'access arguments' => array('administer site configuration'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+
+    return $items;
+
+}
+
+/**
+ * Build an admin form to enable/disable entity edit path overrides.
+ */
+function views_grid_color_admin_settings_form($form, &$form_state) {
+    $grid = variable_get('views_grid_name');
+    if(!$grid){
+    	$grid = array('name' => '');
+    }
+	$colors = variable_get('views_grid_color');
+    if(!$colors) {
+        $colors = array(
+            array('element_1' => ''),
+            array('element_2' => ''),
+            array('element_3' => ''),
+            array('element_4' => ''),
+            array('element_5' => ''),
+            array('element_6' => ''),
+            array('element_7' => ''),
+            array('element_8' => ''),
+            array('element_9' => ''),
+        );
+    }
+    
+    
+
+    $form['views_grid_color_fieldset'] = array(
+        '#type' => 'fieldset',
+        '#collapsible' => TRUE,
+        '#title' => t('Grille produits couleurs paramètres'),
+    );
+
+	$form['views_grid_color_fieldset']['name_grid'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Nom machine de la grille'),
+		'#size' => 20,
+		'#default_value' => $grid['name'],
+	);
+
+    $form['views_grid_color_fieldset']['description'] = array(
+        '#markup' => t('<p>Choisissez les couleurs que vous désirez pour les différents élements de la grille sélectionnée.<br />Le choix se fait en fonction de l\'ordre des produits dans la grille (de gauche à droite, 
+et de haut en bas).<br />Choisissez vos couleurs sur <a 
+href="https://www.w3schools.com/colors/colors_picker.asp" target="_blank">ce lien</a>.<br /> Vous devez utilisez le 
+format de notation héxadécimale (exemple: #ff0000 pour du rouge)</p>')
+    );
+    
+    
+    $form['views_grid_color_fieldset']['element_1'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Couleur de l\'élement 1'),
+        '#size' => 20,
+        '#default_value' => $colors['element_1'],
+    );
+
+    $form['views_grid_color_fieldset']['element_2'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Couleur de l\'élement 2'),
+        '#size' => 20,
+        '#default_value' => $colors['element_2'],
+    );
+    $form['views_grid_color_fieldset']['element_3'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Couleur de l\'élement 3'),
+        '#size' => 20,
+        '#default_value' => $colors['element_3'],
+    );
+    $form['views_grid_color_fieldset']['element_4'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Couleur de l\'élement 4'),
+        '#size' => 20,
+        '#default_value' => $colors['element_4'],
+    );
+    $form['views_grid_color_fieldset']['element_5'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Couleur de l\'élement 5'),
+        '#size' => 20,
+        '#default_value' => $colors['element_5'],
+    );
+    $form['views_grid_color_fieldset']['element_6'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Couleur de l\'élement 6'),
+        '#size' => 20,
+        '#default_value' => $colors['element_6'],
+    );
+    $form['views_grid_color_fieldset']['element_7'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Couleur de l\'élement 7'),
+        '#size' => 20,
+        '#default_value' => $colors['element_7'],
+    );
+    $form['views_grid_color_fieldset']['element_8'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Couleur de l\'élement 8'),
+        '#size' => 20,
+        '#default_value' => $colors['element_8'],
+    );
+    $form['views_grid_color_fieldset']['element_9'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Couleur de l\'élement 9'),
+        '#size' => 20,
+        '#default_value' => $colors['element_9'],
+    );
+
+
+    $form['#submit'][] = 'views_grid_color_settings_form_submit';
+
+    return system_settings_form($form);
+}
+
+function views_grid_color_admin_settings_form_validate(&$form, &$form_state) {
+
+    $values =$form_state['values'];
+    foreach ($values as $key => $value) {
+        if(strpos($key, 'element') !== false){
+            if(!empty($value) && strlen($value) != 7) {
+                form_set_error($key, t('Entrer une couleur au format correct pour le @element.', array('@element'
+                => $key)));
+            }
+        }
+    }
+
+}
+
+/**
+ * Submit callback for views_grid_color_settings().
+ */
+function views_grid_color_settings_form_submit(&$form, &$form_state) {
+
+    $values =$form_state['values'];
+    $colors = array();
+    $grid =  array();
+    foreach ($values as $key => $value) {
+        if(strpos($key, 'element') !== false) {
+            $colors[$key] = $value;
+        }if(strpos($key, 'name_grid') !== false) {
+		    $grid[$key] = $value;
+	    }
+    }
+
+
+	variable_set('views_grid_color', $colors);
+    variable_set('views_grid_name', $grid);
+    dpm($grid);
+    dpm($colors);
+}
+
+
+/**
+ * Implements hook_views_pre_render().
+ * Adds the CSS and JS needed for the functioning of the grid color
+ */
+function views_grid_color_views_pre_render(&$view) {
+	$grid = variable_get('views_grid_name');
+    if($view->name == $grid['name_grid']) {
+        $colors = variable_get('views_grid_color');
+        drupal_add_js(array('views_grid_color' => array('colors' => $colors, 'name' => $grid)), array('type' => 'setting'));
+        drupal_add_js(drupal_get_path('module', 'views_grid_color') . "/views_grid_color.js");
+    }
+
+}
